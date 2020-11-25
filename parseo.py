@@ -180,7 +180,8 @@ def parseAndInterpret(s, num=False, both=False):
         interpretations = pai(s, True)
         if not interpretations:
             interpretations = pai(s, False)
-
+    else:
+        interpretations = pai(s, num)
     if not interpretations:
         print("[italic bold red] No results found! [/italic bold red]")
         return
