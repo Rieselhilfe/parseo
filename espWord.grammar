@@ -1,4 +1,4 @@
-start: (word WHITESPACE+)* word
+start_word: (word WHITESPACE+)* word
 
 !word: prefix* root suffix* ending
 	 | prefix* (root connective?)+ root suffix* ending
@@ -34,4 +34,24 @@ plural: "j"
 !root: LETTER+ 
 LETTER: /./
 %import common.WS -> WHITESPACE
+
+start_num: number
+_delimitor: " "
+_dek: "dek"
+_cent: "cent"
+_mil: "mil"
+_MILIONO: "miliono"
+_MILIARDO: "miliardo"
+_BILIONO: "biliono"
+_BILIARDO: "biliardo"
+!digit: "du" | "tri" | "kvar" | "kvin" | "ses" | "sep" | "ok" | "naŭ"
+!digit_term: (digit | "unu") _delimitor
+!digit_alone: (digit_term | "nulo") _delimitor
+!dekpot: (digit? _dek _delimitor)
+!centpot: (digit? _cent _delimitor)
+!milpot: (pot? _mil _delimitor)
+!pot: (centpot? dekpot? digit_term?)
+_plural: "j" _delimitor
+!bigger_pot{potency}: (potency _delimitor | pot potency _plural)
+!number: digit_alone | bigger_pot{_BILIARDO}? bigger_pot{_BILIONO}? bigger_pot{_MILIARDO}? bigger_pot{_MILIONO}? milpot? centpot? dekpot? digit_term?
 

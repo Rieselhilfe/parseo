@@ -3,13 +3,12 @@ import json
 from lark import Lark
 import fire
 from lark.visitors import CollapseAmbiguities
-from lark.exceptions import UnexpectedEOF
+from lark.exceptions import UnexpectedEOF, UnexpectedCharacters
 from rich import print, inspect
 from rich.traceback import install
 from rich.table import Table
-install()
+install(extra_lines=1)
 
-# TODO: ZAHLWÖRTER
 # ----- construct parser for lark -------- #
 
 VORTARO_PATH = "vortaro.json"
@@ -54,18 +53,69 @@ grammar = grammar\
         + suffixRule\
         + memstaroRule\
 
-parser = Lark(grammar, parser='earley', ambiguity='explicit', start="start")
+parser = Lark(grammar, parser='earley', ambiguity='explicit', start="start_word")
+num_parser = Lark(grammar, parser='earley', start="start_num")
 
 # ---- interpretation of esperanto words ---- #
 
-def interpret(t):
+def child0(a):
+    return a.children[0]
+
+def translate_number(tree):
+    num = 0
+    pot = 0
+    num_dict = {
+            "nulo": 0,
+            "unu": 1,
+            "du" : 2,
+            "tri" : 3,
+            "kvar" : 4,
+            "kvin" : 5,
+            "ses" : 6,
+            "sep" : 7,
+            "ok" : 8,
+            "naŭ": 9,
+            "dek": 10,
+            "cent": 100,
+            "mil": 1000,
+            "miliono": 1000*1000,
+            "miliardo": 1000*1000*1000,
+            "biliono": 1000*1000*1000*1000,
+            "biliardo":1000*1000*1000*1000*1000,
+        }
+    for c in tree.children:
+        if c.data == "digit_term":
+            num += int(num_dict[child0(child0(c))])
+        elif c.data == "dekpot":
+            digit_num = num_dict[child0(child0(c))]
+            num += 10*int(digit_num)
+        elif c.data == "centpot":
+            digit_num = num_dict[child0(child0(c))]
+            num += 100*int(digit_num)
+        elif c.data == "milpot":
+            pot_num = translate_number(child0(c))
+            num += 1000*pot_num
+        elif c.data == "bigger_pot":
+            token_num = int(num_dict[c.children[1]])
+            pot_num = translate_number(child0(c))
+            num += token_num*pot_num
+    return num
+
+def interpret(t, num=False):
     interpreted = {
         "prefix":[],
         "root":[],
         "suffix":[],
         "ending":[]
     }
-    words = t.children[0]
+    if num and child0(t).data == "number":
+        content = translate_number(child0(t))
+        interpreted["root"].append("number: "+str(content))
+        return interpreted
+    elif child0(t).data == "number":
+        return None
+
+    words = child0(t)
     roots = []
     for part in words.children:
         if part.data == "root":
@@ -78,20 +128,20 @@ def interpret(t):
             content = root+": "+"; ".join(definition)
             interpreted["root"].append(content)
         elif part.data == "ending":
-            content = part.children[0].data
+            content = child0(part).data
             interpreted["ending"].append(content)
         elif part.data == "prefix":
-            prefix = part.children[0]
+            prefix = child0(part)
             definition = vortaroFlat[prefix+"-"]
             content = prefix+": "+"; ".join(definition)
             interpreted["prefix"].append(content)
         elif part.data == "suffix":
-            suffix = part.children[0]
+            suffix = child0(part)
             definition = vortaroFlat["-"+suffix+"-"]
             content = suffix+": "+"; ".join(definition)
             interpreted["suffix"].append(content)
         elif part.data == "memstaro":
-            memstaro = part.children[0]
+            memstaro = child0(part)
             definition = vortaroFlat[memstaro]
             content = memstaro+": "+"; ".join(definition)
             interpreted["root"].append(content)
@@ -103,14 +153,34 @@ def interpret(t):
     else:
         return None
 
-def parseAndInterpret(s):
-    try:
-        parsed = parser.parse(s)
-    except UnexpectedEOF:
-        print("[italic bold red] No results found! [/italic bold red]")
-        return
-    interpretations = CollapseAmbiguities().transform(parsed)
-    interpretations = [interpret(i) for i in interpretations if interpret(i)]
+def parseAndInterpret(s, num=False, both=False):
+    s = s.replace("ux", "ŭ")
+    s = s.replace("cx", "ĉ")
+    s = s.replace("sx", "ŝ")
+    s = s.replace("jx", "ĵ")
+    s = s.replace("hx", "ĥ")
+    def pai(s, num=False):
+        try:
+            if num:
+                parsed = num_parser.parse(s+" ")
+            else:
+                parsed = parser.parse(s)
+        except UnexpectedEOF:
+            return None
+        except UnexpectedCharacters:
+            return None
+        if not num:
+            interps = CollapseAmbiguities().transform(parsed)
+            interps = [interpret(i, num=num) for i in interps]
+            return [i for i in interps if i]
+        else:
+            return [interpret(parsed, num=num)]
+
+    if both: # first num because it takes a lot less time
+        interpretations = pai(s, True)
+        if not interpretations:
+            interpretations = pai(s, False)
+
     if not interpretations:
         print("[italic bold red] No results found! [/italic bold red]")
         return
@@ -126,13 +196,17 @@ def parseAndInterpret(s):
                       "\n\n".join(i["root"]),
                       "\n\n".join(i["suffix"]),
                       "\n\n".join(i["ending"]).replace("_", ", "))
-    print(table)
+    print("\n",table, "\n")
 
 # ----- command line interface class for fire ------- #
 
 class Parseo(object):
     def parse(self, s):
-        return parseAndInterpret(s)
+        parseAndInterpret(s, both=True)
+    def parsenum(self, n):
+        parseAndInterpret(n, num=True)
+    def parseword(self, s):
+        parseAndInterpret(s)
 
 if __name__ == '__main__':
   fire.Fire(Parseo)
