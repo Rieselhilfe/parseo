@@ -1,0 +1,37 @@
+start: (word WHITESPACE+)* word
+
+!word: prefix* root suffix* ending
+	 | prefix* (root connective?)+ root suffix* ending
+	 | memstaro
+
+!ending: verb
+	   | noun
+	   | adjective
+verb: _FUTURE -> verb_future
+	| _PERFECT -> verb_perfect
+	| _PRESENCE -> verb_presence
+	| _SUBJUNCTIVE -> verb_subjunctive
+	| _IMPERATIVE -> verb_imperative
+	| _INFINITIVE -> verb_infinitive
+	
+noun: "o" -> noun_nominative_singular
+	| "oj" -> noun_nominative_plural
+	| "on" -> noun_accusative_singular
+	| "ojn" -> noun_accusative_plural
+adjective: "a" -> adjective_nominative_singular
+		 | "aj" -> adjective_nominative_plural
+		 | "an" -> adjective_accusative_singular
+		 | "ajn" -> adjective_accusative_plural
+_FUTURE: "os"
+_PERFECT: "is"
+_PRESENCE: "as"
+_SUBJUNCTIVE: "us"
+_IMPERATIVE: "u"
+_INFINITIVE: "i"
+connective: "o" -> connection
+akk: "n"
+plural: "j"
+!root: LETTER+ 
+LETTER: /./
+%import common.WS -> WHITESPACE
+
