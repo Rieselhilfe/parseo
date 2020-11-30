@@ -3,37 +3,56 @@ start_word: (word WHITESPACE+)* word
 !word: prefix* root suffix* ending
 	 | prefix* (root connective?)+ root suffix* ending
 	 | memstaro
+	 | correlative
 
 !ending: verb
-	   | noun
-	   | adjective
+	   | noun num_and_case
+	   | adjective num_and_case
+	   | adverb
+	   
 verb: _FUTURE -> verb_future
 	| _PERFECT -> verb_perfect
 	| _PRESENCE -> verb_presence
 	| _SUBJUNCTIVE -> verb_subjunctive
 	| _IMPERATIVE -> verb_imperative
-	| _INFINITIVE -> verb_infinitive
-	
-noun: "o" -> noun_nominative_singular
-	| "oj" -> noun_nominative_plural
-	| "on" -> noun_accusative_singular
-	| "ojn" -> noun_accusative_plural
-adjective: "a" -> adjective_nominative_singular
-		 | "aj" -> adjective_nominative_plural
-		 | "an" -> adjective_accusative_singular
-		 | "ajn" -> adjective_accusative_plural
+	| _INFINITIVE -> verb_infinitive	
+noun: "o"
+adjective: "a"
+adverb: "e"
+num_and_case: [plural] [accusative]
+
+plural: "j"
+accusative: "n"
+
 _FUTURE: "os"
 _PERFECT: "is"
 _PRESENCE: "as"
 _SUBJUNCTIVE: "us"
 _IMPERATIVE: "u"
 _INFINITIVE: "i"
+
 connective: "o" -> connection
-akk: "n"
-plural: "j"
 !root: LETTER+ 
 LETTER: /./
 %import common.WS -> WHITESPACE
+
+correlative: pref_corr (suff_corr_indecl | suff_corr_decl num_and_case)
+
+pref_corr: "ki" -> ki_question
+		 | "ti" -> ti_indication
+		 | "i" -> i_indefinite
+		 | "ĉi" -> cxi_universal
+		 | "neni" -> neni_negative
+suff_corr_indecl: "am" -> am_time
+				| "el" -> el_manner
+				| "om" -> om_amount
+				| "al" -> al_reason
+				| "es" -> es_posession
+suff_corr_decl: "o" -> o_thing
+			  | "u" -> u_individual
+			  | "a" -> a_quality
+			  | "e" -> e_place
+			  
 
 start_num: number
 _delimitor: " "

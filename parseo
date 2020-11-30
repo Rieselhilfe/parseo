@@ -1,18 +1,29 @@
+#!/usr/bin/env python3
+
 """ nix """
 import json
-from lark import Lark
+
+import sys
 import fire
+
+from lark import Lark
 from lark.visitors import CollapseAmbiguities
 from lark.exceptions import UnexpectedEOF, UnexpectedCharacters
-from rich import print, inspect
+
 from rich.traceback import install
 from rich.table import Table
+from rich.console import Console
+from rich.markdown import Markdown
+console = Console()
 install(extra_lines=1)
 
 # ----- construct parser for lark -------- #
 
-VORTARO_PATH = "vortaro.json"
-GRAMMAR_PATH = "espWord.grammar"
+PATH_PREFIX = "/usr/local/lib/parseo/"
+VORTARO_PATH = PATH_PREFIX+"vortaro.json"
+GRAMMAR_PATH = PATH_PREFIX+"espWord.grammar"
+
+PROMPT = "[bold]|[green]★ [/ green] |> [/ bold]"
 
 with open(VORTARO_PATH) as vortaroFile:
     vortaro = json.load(vortaroFile)
@@ -27,6 +38,7 @@ vortaroFlat.update(vortaro["radikoj"]["oj"])
 vortaroFlat.update({("-"+x+"-"): y for (x, y) in vortaro["sufiksoj"].items()})
 vortaroFlat.update({(x+"-"): y for (x, y) in vortaro["prefiksoj"].items()})
 vortaroFlat.update(vortaro["other"])
+vortaroFlat.update(vortaro["correlatives"])
 
 vortaroRoots = {}
 vortaroRoots.update(vortaro["radikoj"]["a"])
@@ -35,7 +47,7 @@ vortaroRoots.update(vortaro["radikoj"]["i"])
 vortaroRoots.update(vortaro["radikoj"]["e"])
 vortaroRoots.update(vortaro["radikoj"]["aj"])
 vortaroRoots.update(vortaro["radikoj"]["oj"])
-#vortaroRoots.update(vortaro["other"])
+# vortaroRoots.update(vortaro["other"])
 
 prefixes = vortaro["prefiksoj"]
 suffixes = vortaro["sufiksoj"]
@@ -56,10 +68,28 @@ grammar = grammar\
 parser = Lark(grammar, parser='earley', ambiguity='explicit', start="start_word")
 num_parser = Lark(grammar, parser='earley', start="start_num")
 
+# ---- terminal ui for reading a text ---- #
+
+def readText(t):
+    text = sys.stdin.read()
+    textMd = Markdown(text, justify="full")
+    console.print(textMd)
+    console.input("aaa? ")
+
 # ---- interpretation of esperanto words ---- #
+
+def x_rule(s):
+    return s.replace("ux", "ŭ")\
+            .replace("cx", "ĉ")\
+            .replace("sx", "ŝ")\
+            .replace("jx", "ĵ")\
+            .replace("hx", "ĥ")\
+            .replace("gx", "ĝ")
+
 
 def child0(a):
     return a.children[0]
+
 
 def translate_number(tree):
     num = 0
@@ -101,12 +131,21 @@ def translate_number(tree):
             num += token_num*pot_num
     return num
 
+
 def interpret(t, num=False):
+    def num_and_case(t):
+        l = [x.data for x in t.children]
+        if not "plural" in l:
+            l.append("singular")
+        if not "accusative" in l:
+            l.append("nominative")
+        return l
+
     interpreted = {
-        "prefix":[],
-        "root":[],
-        "suffix":[],
-        "ending":[]
+        "prefix": [],
+        "root": [],
+        "suffix": [],
+        "ending": []
     }
     if num and child0(t).data == "number":
         content = translate_number(child0(t))
@@ -128,7 +167,12 @@ def interpret(t, num=False):
             content = root+": "+"; ".join(definition)
             interpreted["root"].append(content)
         elif part.data == "ending":
-            content = child0(part).data
+            if len(part.children) > 1:
+                morphology = ", ".join(num_and_case(part.children[1]))
+                content = child0(part).data + ", " + morphology
+            else:
+                content = child0(part).data.replace("_", ", ")
+            
             interpreted["ending"].append(content)
         elif part.data == "prefix":
             prefix = child0(part)
@@ -145,20 +189,28 @@ def interpret(t, num=False):
             definition = vortaroFlat[memstaro]
             content = memstaro+": "+"; ".join(definition)
             interpreted["root"].append(content)
+        elif part.data == "correlative":
+            if len(part.children) > 2:
+                morphology = ", ".join(["correlative"]+num_and_case(part.children[2]))
+                interpreted["ending"].append(morphology)
+            else:
+                interpreted["ending"].append("correlative, inflectable")
+            root = x_rule("".join([x.data.split("_")[0] for x in part.children[:2]]))
+            corr = "("+x_rule(") + (".join([x.data.replace("_", ": ") for x in part.children[:2]]))+")"
+            content = "correlative: " + corr
+            definition = "-> "+root+": "+"; ".join(vortaroFlat[root])
+            interpreted["root"].append(content)
+            interpreted["root"].append(definition)
         else:
             if part.data != "connection":
-                print("invalid: ",part.data)
+                console.print("invalid: ", part.data)
     if not (roots and roots[-1] in vortaro["other"] and interpreted["ending"]):
         return interpreted
     else:
         return None
 
 def parseAndInterpret(s, num=False, both=False):
-    s = s.replace("ux", "ŭ")
-    s = s.replace("cx", "ĉ")
-    s = s.replace("sx", "ŝ")
-    s = s.replace("jx", "ĵ")
-    s = s.replace("hx", "ĥ")
+    s = x_rule(s)
     def pai(s, num=False):
         try:
             if num:
@@ -183,7 +235,7 @@ def parseAndInterpret(s, num=False, both=False):
     else:
         interpretations = pai(s, num)
     if not interpretations:
-        print("[italic bold red] No results found! [/italic bold red]")
+        console.print("[italic bold red] No results found! [/italic bold red]")
         return
     table = Table(title=s, show_lines=True, title_style="yellow bold")
     table.add_column("Nr.")
@@ -196,8 +248,21 @@ def parseAndInterpret(s, num=False, both=False):
                       "\n\n".join(i["prefix"]),
                       "\n\n".join(i["root"]),
                       "\n\n".join(i["suffix"]),
-                      "\n\n".join(i["ending"]).replace("_", ", "))
-    print("\n",table, "\n")
+                      "\n\n".join(i["ending"]))
+    console.print(table)
+
+def repl():
+    s = console.input(PROMPT)
+    while s and s != ":quit" and s != ":q":
+        parseAndInterpret(s, both=True)
+        try:
+            s = console.input(PROMPT)
+        except EOFError:
+            break
+        except KeyboardInterrupt:
+            break
+            
+        
 
 # ----- command line interface class for fire ------- #
 
@@ -208,6 +273,10 @@ class Parseo(object):
         parseAndInterpret(n, num=True)
     def parseword(self, s):
         parseAndInterpret(s)
+    def read(self, *t):
+        readText(t)
+    def repl(self):
+        repl()
 
 if __name__ == '__main__':
   fire.Fire(Parseo)

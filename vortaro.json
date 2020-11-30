@@ -13099,6 +13099,10 @@
                 "station (of life)",
                 "status"
             ],
+            "statist": [
+                "extra (in a movie or in theatre)",
+                "background actor"
+            ],
             "statistik": [
                 "statistics"
             ],
@@ -19622,42 +19626,6 @@
         "ĉi": [
             "here (denotes proximity)"
         ],
-        "ĉia": [
-            "all",
-            "every kind of",
-            "each"
-        ],
-        "ĉial": [
-            "for every reason"
-        ],
-        "ĉiam": [
-            "all the time",
-            "always",
-            "ever"
-        ],
-        "ĉie": [
-            "all about",
-            "everywhere"
-        ],
-        "ĉiel": [
-            "every manner",
-            "every way",
-            "in every way"
-        ],
-        "ĉies": [
-            "everyone’s"
-        ],
-        "ĉio": [
-            "all",
-            "altogether",
-            "everything"
-        ],
-        "ĉiom": [
-            "all",
-            "all of it",
-            "the full amount",
-            "the whole quantity"
-        ],
         "ĉirkaŭ": [
             "about",
             "round",
@@ -19665,13 +19633,6 @@
             "towards",
             "round",
             "circa"
-        ],
-        "ĉiu": [
-            "all the",
-            "each",
-            "every",
-            "everybody",
-            "every one"
         ],
         "ĉu": [
             "either",
@@ -19773,56 +19734,12 @@
             "some (kind of)",
             "(a) certain"
         ],
-        "ial": [
-            "for some reason"
-        ],
-        "iam": [
-            "at any time",
-            "at some time",
-            "ever",
-            "sometime",
-            "once upon a time",
-            "formerly"
-        ],
-        "ie": [
-            "anywhere",
-            "somewhere"
-        ],
-        "iel": [
-            "anyhow",
-            "anyway",
-            "somehow",
-            "some way"
-        ],
-        "ies": [
-            "anyone’s",
-            "somebody’s",
-            "someone’s"
-        ],
         "ili": [
             "they"
         ],
         "inter": [
             "among",
             "between"
-        ],
-        "io": [
-            "anything",
-            "something"
-        ],
-        "iom": [
-            "a little",
-            "rather",
-            "some",
-            "somewhat",
-            "to some extent",
-            "a bit"
-        ],
-        "iu": [
-            "anybody",
-            "anyone",
-            "somebody",
-            "someone"
         ],
         "ja": [
             "certainly",
@@ -19861,50 +19778,6 @@
         ],
         "ke": [
             "that"
-        ],
-        "kia": [
-            "what a",
-            "what kind of",
-            "what sort of"
-        ],
-        "kial": [
-            "what for",
-            "why",
-            "for what reason"
-        ],
-        "kiam": [
-            "as",
-            "when"
-        ],
-        "kie": [
-            "where"
-        ],
-        "kiel": [
-            "as",
-            "like",
-            "such as",
-            "how",
-            "in what way",
-            "such a",
-            "what a"
-        ],
-        "kies": [
-            "of which",
-            "which one’s",
-            "whose"
-        ],
-        "kio": [
-            "that",
-            "which"
-        ],
-        "kiom": [
-            "how many",
-            "how much"
-        ],
-        "kiu": [
-            "that",
-            "which (one)",
-            "who"
         ],
         "kontraŭ": [
             "across from",
@@ -19983,48 +19856,6 @@
         "nek": [
             "neither",
             "nor"
-        ],
-        "nenia": [
-            "no kind of",
-            "no . . . whatsoever"
-        ],
-        "nenial": [
-            "for no cause",
-            "for no reason",
-            "on no account"
-        ],
-        "neniam": [
-            "at no time",
-            "never",
-            "not ever"
-        ],
-        "nenie": [
-            "nowhere"
-        ],
-        "neniel": [
-            "by no means",
-            "in no way",
-            "not at all",
-            "not on any account"
-        ],
-        "nenies": [
-            "no-one’s"
-        ],
-        "nenio": [
-            "naught",
-            "none",
-            "not any thing",
-            "nothing"
-        ],
-        "neniom": [
-            "no amount",
-            "none"
-        ],
-        "neniu": [
-            "neither",
-            "nobody",
-            "none",
-            "no-one"
         ],
         "ni": [
             "we"
@@ -20158,6 +19989,87 @@
             "notwithstanding",
             "still"
         ],
+        "tra": [
+            "through"
+        ],
+        "trans": [
+            "across",
+            "beyond",
+            "on the other side of"
+        ],
+        "tre": [
+            "quite",
+            "very",
+            "very much"
+        ],
+        "tri": [
+            "three"
+        ],
+        "tro": [
+            "too (much, many)"
+        ],
+        "tuj": [
+            "at once",
+            "immediately",
+            "just",
+            "right away",
+            "right now"
+        ],
+        "unu": [
+            "one"
+        ],
+        "ve": [
+            "wo, woe, alas"
+        ],
+        "vi": [
+            "you"
+        ]
+    },
+    "correlatives": {
+        "kia": [
+            "what a",
+            "what kind of",
+            "what sort of"
+        ],
+        "kial": [
+            "what for",
+            "why",
+            "for what reason"
+        ],
+        "kiam": [
+            "as",
+            "when"
+        ],
+        "kie": [
+            "where"
+        ],
+        "kiel": [
+            "as",
+            "like",
+            "such as",
+            "how",
+            "in what way",
+            "such a",
+            "what a"
+        ],
+        "kies": [
+            "of which",
+            "which one’s",
+            "whose"
+        ],
+        "kio": [
+            "that",
+            "which"
+        ],
+        "kiom": [
+            "how many",
+            "how much"
+        ],
+        "kiu": [
+            "that",
+            "which (one)",
+            "who"
+        ],
         "tia": [
             "such",
             "such a",
@@ -20205,40 +20117,134 @@
         "tiu": [
             "that (one)"
         ],
-        "tra": [
-            "through"
+        "ial": [
+            "for some reason"
         ],
-        "trans": [
-            "across",
-            "beyond",
-            "on the other side of"
+        "iam": [
+            "at any time",
+            "at some time",
+            "ever",
+            "sometime",
+            "once upon a time",
+            "formerly"
         ],
-        "tre": [
-            "quite",
-            "very",
-            "very much"
+        "ie": [
+            "anywhere",
+            "somewhere"
         ],
-        "tri": [
-            "three"
+        "iel": [
+            "anyhow",
+            "anyway",
+            "somehow",
+            "some way"
         ],
-        "tro": [
-            "too (much, many)"
+        "ies": [
+            "anyone’s",
+            "somebody’s",
+            "someone’s"
         ],
-        "tuj": [
-            "at once",
-            "immediately",
-            "just",
-            "right away",
-            "right now"
+        "io": [
+            "anything",
+            "something"
         ],
-        "unu": [
-            "one"
+        "iom": [
+            "a little",
+            "rather",
+            "some",
+            "somewhat",
+            "to some extent",
+            "a bit"
         ],
-        "ve": [
-            "wo, woe, alas"
+        "iu": [
+            "anybody",
+            "anyone",
+            "somebody",
+            "someone"
         ],
-        "vi": [
-            "you"
+        "ĉia": [
+            "all",
+            "every kind of",
+            "each"
+        ],
+        "ĉial": [
+            "for every reason"
+        ],
+        "ĉiam": [
+            "all the time",
+            "always",
+            "ever"
+        ],
+        "ĉie": [
+            "all about",
+            "everywhere"
+        ],
+        "ĉiel": [
+            "every manner",
+            "every way",
+            "in every way"
+        ],
+        "ĉies": [
+            "everyone’s"
+        ],
+        "ĉio": [
+            "all",
+            "altogether",
+            "everything"
+        ],
+        "ĉiom": [
+            "all",
+            "all of it",
+            "the full amount",
+            "the whole quantity"
+        ],
+        "ĉiu": [
+            "all the",
+            "each",
+            "every",
+            "everybody",
+            "every one"
+        ],
+        "nenia": [
+            "no kind of",
+            "no . . . whatsoever"
+        ],
+        "nenial": [
+            "for no cause",
+            "for no reason",
+            "on no account"
+        ],
+        "neniam": [
+            "at no time",
+            "never",
+            "not ever"
+        ],
+        "nenie": [
+            "nowhere"
+        ],
+        "neniel": [
+            "by no means",
+            "in no way",
+            "not at all",
+            "not on any account"
+        ],
+        "nenies": [
+            "no-one’s"
+        ],
+        "nenio": [
+            "naught",
+            "none",
+            "not any thing",
+            "nothing"
+        ],
+        "neniom": [
+            "no amount",
+            "none"
+        ],
+        "neniu": [
+            "neither",
+            "nobody",
+            "none",
+            "no-one"
         ]
     }
 }
