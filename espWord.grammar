@@ -32,7 +32,7 @@ _IMPERATIVE: "u"
 _INFINITIVE: "i"
 
 connective: "o" -> connection
-		  | "a" -> connection
+	  | "a" -> connection
           | "e" -> connection
 
 !root: LETTER+ 
