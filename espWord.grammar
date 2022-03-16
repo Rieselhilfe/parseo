@@ -1,7 +1,6 @@
 start_word: (word WHITESPACE+)* word
 
-!word: prefix* root suffix* ending
-	 | prefix* (root connective?)+ root suffix* ending
+!word: (((root | prefix | suffix) connective)? (root | prefix | suffix))+  ending
 	 | memstaro
 	 | correlative
 
@@ -33,6 +32,9 @@ _IMPERATIVE: "u"
 _INFINITIVE: "i"
 
 connective: "o" -> connection
+		  | "a" -> connection
+          | "e" -> connection
+
 !root: LETTER+ 
 LETTER: /./
 %import common.WS -> WHITESPACE

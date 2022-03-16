@@ -193,7 +193,6 @@ def interpret(t, num=False):
             content = memstaro+": "+"; ".join(definition)
             interpreted["root"].append(content)
         elif part.data == "correlative":
-            print(part)
             if len(part.children) > 2 or part.children[1].data == 'o_thing' or  part.children[1].data == 'e_place':
                 if part.children[1].data == 'e_place':
                     if len(part.children) > 2 and part.children[2].data == 'directional_accusative':
