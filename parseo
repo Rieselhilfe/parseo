@@ -19,7 +19,7 @@ install(extra_lines=1)
 
 # ----- construct parser for lark -------- #
 
-PATH_PREFIX = "/usr/local/lib/parseo/"
+PATH_PREFIX = "./" #"/usr/local/lib/parseo/"
 VORTARO_PATH = PATH_PREFIX+"vortaro.json"
 GRAMMAR_PATH = PATH_PREFIX+"espWord.grammar"
 
@@ -137,7 +137,7 @@ def interpret(t, num=False):
         l = [x.data for x in t.children]
         if not "plural" in l:
             l.append("singular")
-        if not "accusative" in l:
+        if not "accusative" in l and not "directional_accusative" in l:
             l.append("nominative")
         return l
 
@@ -168,7 +168,10 @@ def interpret(t, num=False):
             interpreted["root"].append(content)
         elif part.data == "ending":
             if len(part.children) > 1:
-                morphology = ", ".join(num_and_case(part.children[1]))
+                if part.children[1].data == "directional_accusative":
+                    morphology = "directional accusative"
+                else:
+                    morphology = ", ".join(num_and_case(part.children[1]))
                 content = child0(part).data + ", " + morphology
             else:
                 content = child0(part).data.replace("_", ", ")
@@ -191,8 +194,12 @@ def interpret(t, num=False):
             interpreted["root"].append(content)
         elif part.data == "correlative":
             if len(part.children) > 2:
-                morphology = ", ".join(["correlative"]+num_and_case(part.children[2]))
-                interpreted["ending"].append(morphology)
+                if part.children[1].data == 'e_place':
+                    if part.children[2].data == 'accusative':
+                        interpreted["ending"].append('directional accusative')
+                else:
+                    morphology = ", ".join(["correlative"]+num_and_case(part.children[2]))
+                    interpreted["ending"].append(morphology)
             else:
                 interpreted["ending"].append("correlative, inflectable")
             root = x_rule("".join([x.data.split("_")[0] for x in part.children[:2]]))
@@ -242,7 +249,7 @@ def parseAndInterpret(s, num=False, both=False):
     table.add_column("prefix", style="cyan")
     table.add_column("root", style="magenta")
     table.add_column("suffix", style="red")
-    table.add_column("morphology", style="green")
+    table.add_column("ending", style="green")
     for n, i in enumerate(interpretations):
         table.add_row(str(n),
                       "\n\n".join(i["prefix"]),

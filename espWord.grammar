@@ -8,7 +8,7 @@ start_word: (word WHITESPACE+)* word
 !ending: verb
 	   | noun num_and_case
 	   | adjective num_and_case
-	   | adverb
+	   | adverb directional_accusative?
 	   
 verb: _FUTURE -> verb_future
 	| _PERFECT -> verb_perfect
@@ -23,6 +23,7 @@ num_and_case: [plural] [accusative]
 
 plural: "j"
 accusative: "n"
+directional_accusative: "n"
 
 _FUTURE: "os"
 _PERFECT: "is"
@@ -36,7 +37,7 @@ connective: "o" -> connection
 LETTER: /./
 %import common.WS -> WHITESPACE
 
-correlative: pref_corr (suff_corr_indecl | suff_corr_decl num_and_case)
+correlative: pref_corr (suff_corr_indecl | suff_corr_decl num_and_case | suff_corr_decl_no_num accusative? | suff_corr_decl_dir_acc directional_accusative?)
 
 pref_corr: "ki" -> ki_question
 		 | "ti" -> ti_indication
@@ -48,10 +49,10 @@ suff_corr_indecl: "am" -> am_time
 				| "om" -> om_amount
 				| "al" -> al_reason
 				| "es" -> es_posession
-suff_corr_decl: "o" -> o_thing
-			  | "u" -> u_individual
+suff_corr_decl: "u" -> u_individual
 			  | "a" -> a_quality
-			  | "e" -> e_place
+suff_corr_decl_no_num: "o" -> o_thing
+suff_corr_decl_dir_acc: "e" -> e_place
 			  
 
 start_num: number
