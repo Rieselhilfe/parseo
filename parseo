@@ -19,7 +19,7 @@ install(extra_lines=1)
 
 # ----- construct parser for lark -------- #
 
-PATH_PREFIX = "./" #"/usr/local/lib/parseo/"
+PATH_PREFIX = "./"#/usr/local/lib/parseo/"
 VORTARO_PATH = PATH_PREFIX+"vortaro.json"
 GRAMMAR_PATH = PATH_PREFIX+"espWord.grammar"
 
@@ -137,7 +137,7 @@ def interpret(t, num=False):
         l = [x.data for x in t.children]
         if not "plural" in l:
             l.append("singular")
-        if not "accusative" in l and not "directional_accusative" in l:
+        if not "accusative" in l:
             l.append("nominative")
         return l
 
@@ -193,13 +193,21 @@ def interpret(t, num=False):
             content = memstaro+": "+"; ".join(definition)
             interpreted["root"].append(content)
         elif part.data == "correlative":
-            if len(part.children) > 2:
+            print(part)
+            if len(part.children) > 2 or part.children[1].data == 'o_thing' or  part.children[1].data == 'e_place':
                 if part.children[1].data == 'e_place':
-                    if part.children[2].data == 'accusative':
-                        interpreted["ending"].append('directional accusative')
+                    if len(part.children) > 2 and part.children[2].data == 'directional_accusative':
+                        morphology = ", ".join(["correlative", "directional accusative"])
+                    else:
+                        morphology = ", ".join(["correlative"])
+                elif part.children[1].data == 'o_thing':
+                    if len(part.children) > 2 and part.children[2].data == 'accusative':
+                        morphology = ", ".join(["correlative", "accusative"])
+                    else:
+                        morphology = ", ".join(["correlative", "nominative"])
                 else:
                     morphology = ", ".join(["correlative"]+num_and_case(part.children[2]))
-                    interpreted["ending"].append(morphology)
+                interpreted["ending"].append(morphology)
             else:
                 interpreted["ending"].append("correlative, inflectable")
             root = x_rule("".join([x.data.split("_")[0] for x in part.children[:2]]))
