@@ -284,7 +284,7 @@ def visualize(t):
             s += "i"
         if len(part.children) > 1:
             if part.children[1].data == "directional_accusative":
-                s += n
+                s += "n"
             elif part.children[1].data == "num_and_case":
                 l = [x.data for x in part.children[1].children]
                 if "plural" in l:
