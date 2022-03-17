@@ -357,9 +357,7 @@ def parseAndInterpret(s, num=False, both=False):
                       "\n\n".join(i[0]["suffix"]),
                       "\n\n".join(i[0]["ending"]),
                       i[1])
-    visual_color_legend = "yellow: prefix"
     console.print(table)
-    console.print(visual_color_legend)
 
 def repl():
     s = console.input(PROMPT)
