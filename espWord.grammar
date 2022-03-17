@@ -8,13 +8,13 @@ start_word: (word WHITESPACE+)* word
 	   | noun num_and_case
 	   | adjective num_and_case
 	   | adverb directional_accusative?
-	   
+
 verb: _FUTURE -> verb_future
 	| _PERFECT -> verb_perfect
 	| _PRESENCE -> verb_presence
 	| _SUBJUNCTIVE -> verb_subjunctive
 	| _IMPERATIVE -> verb_imperative
-	| _INFINITIVE -> verb_infinitive	
+	| _INFINITIVE -> verb_infinitive
 noun: "o"
 adjective: "a"
 adverb: "e"
@@ -31,11 +31,11 @@ _SUBJUNCTIVE: "us"
 _IMPERATIVE: "u"
 _INFINITIVE: "i"
 
-connective: "o" -> connection
-		  | "a" -> connection
-          | "e" -> connection
+connective: "o" -> o_connection
+		      | "a" -> a_connection
+          | "e" -> e_connection
 
-!root: LETTER+ 
+!root: LETTER+
 LETTER: /./
 %import common.WS -> WHITESPACE
 
@@ -55,7 +55,7 @@ suff_corr_decl: "u" -> u_individual
 			  | "a" -> a_quality
 suff_corr_decl_no_num: "o" -> o_thing
 suff_corr_decl_dir_acc: "e" -> e_place
-			  
+
 
 start_num: number
 _delimitor: " "
@@ -76,4 +76,3 @@ _BILIARDO: "biliardo"
 _plural: "j" _delimitor
 !bigger_pot{potency}: (potency _delimitor | pot potency _plural)
 !number: digit_alone | bigger_pot{_BILIARDO}? bigger_pot{_BILIONO}? bigger_pot{_MILIARDO}? bigger_pot{_MILIONO}? milpot? centpot? dekpot? digit_term?
-

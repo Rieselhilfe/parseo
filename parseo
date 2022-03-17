@@ -175,7 +175,7 @@ def interpret(t, num=False):
                 content = child0(part).data + ", " + morphology
             else:
                 content = child0(part).data.replace("_", ", ")
-            
+
             interpreted["ending"].append(content)
         elif part.data == "prefix":
             prefix = child0(part)
@@ -216,12 +216,102 @@ def interpret(t, num=False):
             interpreted["root"].append(content)
             interpreted["root"].append(definition)
         else:
-            if part.data != "connection":
+            if "connection" not in part.data:
                 console.print("invalid: ", part.data)
     if not (roots and roots[-1] in vortaro["other"] and interpreted["ending"]):
         return interpreted
     else:
         return None
+
+def visualize(t):
+    def split_word(parts):
+        after_root = False
+        l = [[]]
+        for part in parts:
+            if part.data == "prefix":
+                if after_root:
+                    after_root = False
+                    l.append([part])
+                else:
+                    l[-1].append(part)
+            elif part.data == "root":
+                if after_root:
+                    l.append([part])
+                else:
+                    l[-1].append(part)
+                    after_root = True
+            elif part.data == "suffix":
+                if after_root:
+                    l[-1].append(part)
+                else:
+                    l[-1].append(part)
+                    after_root = True
+            elif part.data == "ending":
+                if after_root:
+                    l[-1].append(part)
+                else:
+                    print("ending", l)
+                    return # TODO
+            elif "connection" in part.data:
+                if after_root:
+                    l[-1].append(part)
+                    l.append([])
+                    after_root = False
+                else:
+                    print("connection", l)
+                    return # TODO
+        return l
+
+    def ending_to_string(part):
+        s = ""
+        if child0(part).data == "noun":
+            s += "o"
+        elif child0(part).data == "adjective":
+            s += "a"
+        elif child0(part).data == "adverb":
+            s += "e"
+        elif child0(part).data == "verb_future":
+            s += "os"
+        elif child0(part).data == "verb_perfect":
+            s += "is"
+        elif child0(part).data == "verb_presence":
+            s += "as"
+        elif child0(part).data == "verb_subjunctive":
+            s += "us"
+        elif child0(part).data == "verb_imperative":
+            s += "u"
+        elif child0(part).data == "verb_infinitive":
+            s += "i"
+        if len(part.children) > 1:
+            if part.children[1].data == "directional_accusative":
+                s += n
+            elif part.children[1].data == "num_and_case":
+                l = [x.data for x in part.children[1].children]
+                if "plural" in l:
+                    s += "j"
+                if "accusative" in l:
+                    s += "n"
+        return s
+
+    def part_to_string(part):
+        if part.data == "prefix":
+            return "[italic yellow]"+child0(part) +"[/italic yellow]"
+        elif part.data == "root":
+            return "[bold red]"+"".join([letter for letter in part.children])+"[/bold red]"
+        elif part.data == "suffix":
+            return "[italic green]"+child0(part) +"[/italic green]"
+        elif part.data == "ending":
+            return "[magenta]"+ending_to_string(part)+"[/magenta]"
+        elif "connection" in part.data:
+            return "[cyan]"+part.data[0]+"[/cyan]"
+
+    word = child0(t)
+    parts = word.children
+    if "memstaro" in parts or "correlative" in parts:
+        print("memstaro or correlative")
+        return
+    split_parts = split_word(parts)
+    return "'".join(["'".join(map(part_to_string, w)) for w in split_parts])
 
 def parseAndInterpret(s, num=False, both=False):
     s = x_rule(s)
@@ -236,11 +326,13 @@ def parseAndInterpret(s, num=False, both=False):
         except UnexpectedCharacters:
             return None
         if not num:
-            interps = CollapseAmbiguities().transform(parsed)
-            interps = [interpret(i, num=num) for i in interps]
-            return [i for i in interps if i]
+            parsed = CollapseAmbiguities().transform(parsed)
+            interps = [(interpret(i, num=num), i) for i in parsed]
+            interps = [i for i in interps if i[0]]
+            interps = [(i[0], visualize(i[1])) for i in interps]
+            return [i for i in interps]
         else:
-            return [interpret(parsed, num=num)]
+            return [(interpret(parsed, num=num), None)]
 
     if both: # first num because it takes a lot less time
         interpretations = pai(s, True)
@@ -251,19 +343,23 @@ def parseAndInterpret(s, num=False, both=False):
     if not interpretations:
         console.print("[italic bold red] No results found! [/italic bold red]")
         return
-    table = Table(title=s, show_lines=True, title_style="yellow bold")
+    table = Table(title="[underline]"+s+"[/underline]", show_lines=True, title_style="white bold")
     table.add_column("Nr.")
-    table.add_column("prefix", style="cyan")
-    table.add_column("root", style="magenta")
-    table.add_column("suffix", style="red")
-    table.add_column("ending", style="green")
+    table.add_column("prefix", style="yellow")
+    table.add_column("root", style="red")
+    table.add_column("suffix", style="green")
+    table.add_column("ending", style="magenta")
+    table.add_column("visual")
     for n, i in enumerate(interpretations):
         table.add_row(str(n),
-                      "\n\n".join(i["prefix"]),
-                      "\n\n".join(i["root"]),
-                      "\n\n".join(i["suffix"]),
-                      "\n\n".join(i["ending"]))
+                      "\n\n".join(i[0]["prefix"]),
+                      "\n\n".join(i[0]["root"]),
+                      "\n\n".join(i[0]["suffix"]),
+                      "\n\n".join(i[0]["ending"]),
+                      i[1])
+    visual_color_legend = "yellow: prefix"
     console.print(table)
+    console.print(visual_color_legend)
 
 def repl():
     s = console.input(PROMPT)
@@ -275,8 +371,8 @@ def repl():
             break
         except KeyboardInterrupt:
             break
-            
-        
+
+
 
 # ----- command line interface class for fire ------- #
 
