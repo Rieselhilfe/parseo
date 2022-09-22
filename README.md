@@ -2,7 +2,7 @@
 A smart esperanto word parser that shows all possible word compositions from roots, affixes and word endings. 
 Based on the wordlists of Baza Radikaro Oficiala.
 
-Web version: [parseo.online](parseo.online)
+Web version: [http://parseo.online](http://parseo.online)
 
 Usage from command line: 
     
