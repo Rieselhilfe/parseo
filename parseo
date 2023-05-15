@@ -174,15 +174,21 @@ def interpret(t, num=False):
         "suffix": [],
         "ending": []
     }
-    if num and child0(t).data == "number":
+    if num and t.data == "number":
         content = translate_number(child0(t))
         interpreted["root"].append("number: " + str(content))
         return interpreted
-    elif child0(t).data == "number":
+    elif t.data == "number":
         return None
 
     word = t  # word = child0(t) with CollapseAmbiguities
     roots = []
+    if word.data == "memstaro":
+        memstaro = child0(word)
+        definition = vortaroFlat[memstaro]
+        content = memstaro + ": " + "; ".join(definition)
+        interpreted["root"].append(content)
+        return interpreted
     for part in word.children:
         if part.data == "root":
             root = "".join([letter for letter in part.children])
@@ -214,11 +220,6 @@ def interpret(t, num=False):
             definition = vortaroFlat["-" + suffix + "-"]
             content = suffix + ": " + "; ".join(definition)
             interpreted["suffix"].append(content)
-        elif part.data == "memstaro":
-            memstaro = child0(part)
-            definition = vortaroFlat[memstaro]
-            content = memstaro + ": " + "; ".join(definition)
-            interpreted["root"].append(content)
         elif part.data == "correlative":
             if len(part.children) > 2 or part.children[1].data == 'o_thing' or part.children[1].data == 'e_place':
                 if part.children[1].data == 'e_place':
@@ -297,6 +298,15 @@ def parseAndInterpret(s, num=False, both=False):
                       "\n\n".join(i["ending"]))
     console.print(table)
 
+def parse_token(s):
+    s = x_rule(s)
+    try:
+            parsed = parser.parse(s)
+    except UnexpectedEOF:
+        return None
+    except UnexpectedCharacters:
+        return None
+    return quick_fixed_CA(parsed)
 
 def repl():
     s = console.input(PROMPT)
