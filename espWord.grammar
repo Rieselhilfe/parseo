@@ -31,12 +31,20 @@ _SUBJUNCTIVE: "us"
 _IMPERATIVE: "u"
 _INFINITIVE: "i"
 
-connective: "o" -> o_connection
-          | "a" -> a_connection
-          | "e" -> e_connection
+connective: "o" -> connection
+	      | "a" -> connection
+          | "e" -> connection
 
-!root: LETTER+
-LETTER: /./
+!root: LETTER LETTER+
+LETTER: "a" | "b" | "c" | "ĉ" | "d" | "e" | "f"
+      | "g" | "ĝ" | "h" | "ĥ" | "i" | "j" | "ĵ"
+      | "k" | "l" | "m" | "n" | "o" | "p" | "r"
+      | "s" | "ŝ" | "t" | "u" | "ŭ" | "ǔ" | "û"
+      | "v" | "z" | "x" | "-" | "A" | "B" | "C"
+      | "Ĉ" | "D" | "E" | "F" | "G" | "Ĝ" | "H"
+      | "Ĥ" | "I" | "J" | "Ĵ" | "K" | "L" | "M"
+      | "N" | "O" | "P" | "R" | "S" | "Ŝ" | "T"
+      | "U" | "Ŭ" | "Ǔ" | "Û" | "V" | "Z" | "X"
 %import common.WS -> WHITESPACE
 
 correlative: pref_corr (suff_corr_indecl | suff_corr_decl num_and_case | suff_corr_decl_no_num accusative? | suff_corr_decl_dir_acc directional_accusative?)

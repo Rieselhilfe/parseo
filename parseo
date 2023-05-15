@@ -14,14 +14,15 @@ from rich.traceback import install
 from rich.table import Table
 from rich.console import Console
 from rich.markdown import Markdown
+
 console = Console()
 install(extra_lines=1)
 
 # ----- construct parser for lark -------- #
 
-PATH_PREFIX = "./"#/usr/local/lib/parseo/"
-VORTARO_PATH = PATH_PREFIX+"vortaro.json"
-GRAMMAR_PATH = PATH_PREFIX+"espWord.grammar"
+PATH_PREFIX = "/home/neniu/Projects/eonlp/"
+VORTARO_PATH = PATH_PREFIX + "vortaro.json"
+GRAMMAR_PATH = PATH_PREFIX + "espWord.grammar"
 
 PROMPT = "[bold]|[green]★ [/ green] |> [/ bold]"
 
@@ -35,8 +36,8 @@ vortaroFlat.update(vortaro["radikoj"]["i"])
 vortaroFlat.update(vortaro["radikoj"]["e"])
 vortaroFlat.update(vortaro["radikoj"]["aj"])
 vortaroFlat.update(vortaro["radikoj"]["oj"])
-vortaroFlat.update({("-"+x+"-"): y for (x, y) in vortaro["sufiksoj"].items()})
-vortaroFlat.update({(x+"-"): y for (x, y) in vortaro["prefiksoj"].items()})
+vortaroFlat.update({("-" + x + "-"): y for (x, y) in vortaro["sufiksoj"].items()})
+vortaroFlat.update({(x + "-"): y for (x, y) in vortaro["prefiksoj"].items()})
 vortaroFlat.update(vortaro["other"])
 vortaroFlat.update(vortaro["correlatives"])
 
@@ -53,38 +54,47 @@ prefixes = vortaro["prefiksoj"]
 suffixes = vortaro["sufiksoj"]
 memstaro = vortaro["other"]
 
-prefixRule = "!prefix: "+("|".join(['"'+word+'"' for word, _ in prefixes.items()]))+"\n"
-suffixRule = "!suffix: "+("|".join(['"'+word+'"' for word, _ in suffixes.items()]))+"\n"
-memstaroRule = "!memstaro: "+("|".join(['"'+word+'"' for word, _ in memstaro.items()]))+"\n"
+prefixRule = "!prefix: " + ("|".join(['"' + word + '"' for word, _ in prefixes.items()])) + "\n"
+suffixRule = "!suffix: " + ("|".join(['"' + word + '"' for word, _ in suffixes.items()])) + "\n"
+memstaroRule = "!memstaro: " + ("|".join(['"' + word + '"' for word, _ in memstaro.items()])) + "\n"
 
 with open(GRAMMAR_PATH) as grammarFile:
     grammar = grammarFile.read()
 
-grammar = grammar\
-        + prefixRule\
-        + suffixRule\
-        + memstaroRule\
+grammar = grammar \
+          + prefixRule \
+          + suffixRule \
+          + memstaroRule \
 
 parser = Lark(grammar, parser='earley', ambiguity='explicit', start="start_word")
 num_parser = Lark(grammar, parser='earley', start="start_num")
 
+
+# ---- quick dumb fix for issue with lark's CollapseAmbiguities ---- #
+
+def quick_fixed_CA(tree):
+    words = [c for c in child0(tree).children]
+    return words
+
+
 # ---- terminal ui for reading a text ---- #
 
-def readText(t):
+def read_text(t):
     text = sys.stdin.read()
     textMd = Markdown(text, justify="full")
     console.print(textMd)
     console.input("aaa? ")
 
+
 # ---- interpretation of esperanto words ---- #
 
 def x_rule(s):
-    return s.replace("ux", "ŭ")\
-            .replace("cx", "ĉ")\
-            .replace("sx", "ŝ")\
-            .replace("jx", "ĵ")\
-            .replace("hx", "ĥ")\
-            .replace("gx", "ĝ")
+    return s.replace("ux", "ŭ") \
+        .replace("cx", "ĉ") \
+        .replace("sx", "ŝ") \
+        .replace("jx", "ĵ") \
+        .replace("hx", "ĥ") \
+        .replace("gx", "ĝ")
 
 
 def child0(a):
@@ -95,46 +105,63 @@ def translate_number(tree):
     num = 0
     pot = 0
     num_dict = {
-            "nulo": 0,
-            "unu": 1,
-            "du" : 2,
-            "tri" : 3,
-            "kvar" : 4,
-            "kvin" : 5,
-            "ses" : 6,
-            "sep" : 7,
-            "ok" : 8,
-            "naŭ": 9,
-            "dek": 10,
-            "cent": 100,
-            "mil": 1000,
-            "miliono": 1000*1000,
-            "miliardo": 1000*1000*1000,
-            "biliono": 1000*1000*1000*1000,
-            "biliardo":1000*1000*1000*1000*1000,
-        }
+        "nulo": 0,
+        "unu": 1,
+        "du": 2,
+        "tri": 3,
+        "kvar": 4,
+        "kvin": 5,
+        "ses": 6,
+        "sep": 7,
+        "ok": 8,
+        "naŭ": 9,
+        "dek": 10,
+        "cent": 100,
+        "mil": 1000,
+        "miliono": 1000 * 1000,
+        "miliardo": 1000 * 1000 * 1000,
+        "biliono": 1000 * 1000 * 1000 * 1000,
+        "biliardo": 1000 * 1000 * 1000 * 1000 * 1000,
+    }
+    print(tree)
     for c in tree.children:
         if c.data == "digit_term":
-            num += int(num_dict[child0(child0(c))])
+            if child0(c) == "unu":
+                num += 1
+            else:
+                num += int(num_dict[child0(child0(c))])
         elif c.data == "dekpot":
-            digit_num = num_dict[child0(child0(c))]
-            num += 10*int(digit_num)
+            if not c.children:
+                digit_num = 1
+            else:
+                digit_num = num_dict[child0(child0(c))]
+            num += 10 * int(digit_num)
         elif c.data == "centpot":
-            digit_num = num_dict[child0(child0(c))]
-            num += 100*int(digit_num)
+            if not c.children:
+                digit_num = 1
+            else:
+                digit_num = num_dict[child0(child0(c))]
+            num += 100 * int(digit_num)
         elif c.data == "milpot":
-            pot_num = translate_number(child0(c))
-            num += 1000*pot_num
+            if not child0(c).children:
+                pot_num = 1
+            else:
+                pot_num = translate_number(child0(c))
+            num += 1000 * pot_num
         elif c.data == "bigger_pot":
-            token_num = int(num_dict[c.children[1]])
-            pot_num = translate_number(child0(c))
-            num += token_num*pot_num
+            if len(c.children) == 1:
+                token_num = int(num_dict[c.children[0]])
+                pot_num = 1
+            else:
+                token_num = int(num_dict[c.children[1]])
+                pot_num = translate_number(child0(c))
+            num += token_num * pot_num
     return num
 
 
 def interpret(t, num=False):
     def num_and_case(t):
-        l = [x.data for x in t.children]
+        l = [x.data for x in t.children if x]
         if not "plural" in l:
             l.append("singular")
         if not "accusative" in l:
@@ -149,14 +176,14 @@ def interpret(t, num=False):
     }
     if num and child0(t).data == "number":
         content = translate_number(child0(t))
-        interpreted["root"].append("number: "+str(content))
+        interpreted["root"].append("number: " + str(content))
         return interpreted
     elif child0(t).data == "number":
         return None
 
-    words = child0(t)
+    word = t  # word = child0(t) with CollapseAmbiguities
     roots = []
-    for part in words.children:
+    for part in word.children:
         if part.data == "root":
             root = "".join([letter for letter in part.children])
             roots.append(root)
@@ -164,7 +191,7 @@ def interpret(t, num=False):
                 definition = vortaroRoots[root]
             else:
                 return None
-            content = root+": "+"; ".join(definition)
+            content = root + ": " + "; ".join(definition)
             interpreted["root"].append(content)
         elif part.data == "ending":
             if len(part.children) > 1:
@@ -179,21 +206,21 @@ def interpret(t, num=False):
             interpreted["ending"].append(content)
         elif part.data == "prefix":
             prefix = child0(part)
-            definition = vortaroFlat[prefix+"-"]
-            content = prefix+": "+"; ".join(definition)
+            definition = vortaroFlat[prefix + "-"]
+            content = prefix + ": " + "; ".join(definition)
             interpreted["prefix"].append(content)
         elif part.data == "suffix":
             suffix = child0(part)
-            definition = vortaroFlat["-"+suffix+"-"]
-            content = suffix+": "+"; ".join(definition)
+            definition = vortaroFlat["-" + suffix + "-"]
+            content = suffix + ": " + "; ".join(definition)
             interpreted["suffix"].append(content)
         elif part.data == "memstaro":
             memstaro = child0(part)
             definition = vortaroFlat[memstaro]
-            content = memstaro+": "+"; ".join(definition)
+            content = memstaro + ": " + "; ".join(definition)
             interpreted["root"].append(content)
         elif part.data == "correlative":
-            if len(part.children) > 2 or part.children[1].data == 'o_thing' or  part.children[1].data == 'e_place':
+            if len(part.children) > 2 or part.children[1].data == 'o_thing' or part.children[1].data == 'e_place':
                 if part.children[1].data == 'e_place':
                     if len(part.children) > 2 and part.children[2].data == 'directional_accusative':
                         morphology = ", ".join(["correlative", "directional accusative"])
@@ -205,159 +232,71 @@ def interpret(t, num=False):
                     else:
                         morphology = ", ".join(["correlative", "nominative"])
                 else:
-                    morphology = ", ".join(["correlative"]+num_and_case(part.children[2]))
+                    morphology = ", ".join(["correlative"] + num_and_case(part.children[2]))
                 interpreted["ending"].append(morphology)
             else:
                 interpreted["ending"].append("correlative, inflectable")
             root = x_rule("".join([x.data.split("_")[0] for x in part.children[:2]]))
-            corr = "("+x_rule(") + (".join([x.data.replace("_", ": ") for x in part.children[:2]]))+")"
+            corr = "(" + x_rule(") + (".join([x.data.replace("_", ": ") for x in part.children[:2]])) + ")"
             content = "correlative: " + corr
-            definition = "-> "+root+": "+"; ".join(vortaroFlat[root])
+            definition = "-> " + root + ": " + "; ".join(vortaroFlat[root])
             interpreted["root"].append(content)
             interpreted["root"].append(definition)
         else:
-            if "connection" not in part.data:
+            if part.data != "connection":
                 console.print("invalid: ", part.data)
     if not (roots and roots[-1] in vortaro["other"] and interpreted["ending"]):
         return interpreted
     else:
         return None
 
-def visualize(t):
-    def split_word(parts):
-        after_root = False
-        l = [[]]
-        for part in parts:
-            if part.data == "prefix":
-                if after_root:
-                    after_root = False
-                    l.append([part])
-                else:
-                    l[-1].append(part)
-            elif part.data == "root":
-                if after_root:
-                    l.append([part])
-                else:
-                    l[-1].append(part)
-                    after_root = True
-            elif part.data == "suffix":
-                if after_root:
-                    l[-1].append(part)
-                else:
-                    l[-1].append(part)
-                    after_root = True
-            elif part.data == "ending":
-                if after_root:
-                    l[-1].append(part)
-                else:
-                    print("ending", l)
-                    return # TODO
-            elif "connection" in part.data:
-                if after_root:
-                    l[-1].append(part)
-                    l.append([])
-                    after_root = False
-                else:
-                    print("connection", l)
-                    return # TODO
-        return l
 
-    def ending_to_string(part):
-        s = ""
-        if child0(part).data == "noun":
-            s += "o"
-        elif child0(part).data == "adjective":
-            s += "a"
-        elif child0(part).data == "adverb":
-            s += "e"
-        elif child0(part).data == "verb_future":
-            s += "os"
-        elif child0(part).data == "verb_perfect":
-            s += "is"
-        elif child0(part).data == "verb_presence":
-            s += "as"
-        elif child0(part).data == "verb_subjunctive":
-            s += "us"
-        elif child0(part).data == "verb_imperative":
-            s += "u"
-        elif child0(part).data == "verb_infinitive":
-            s += "i"
-        if len(part.children) > 1:
-            if part.children[1].data == "directional_accusative":
-                s += "n"
-            elif part.children[1].data == "num_and_case":
-                l = [x.data for x in part.children[1].children]
-                if "plural" in l:
-                    s += "j"
-                if "accusative" in l:
-                    s += "n"
-        return s
+def all_word_interpretations(s, num=False):
+    try:
+        if num:
+            parsed = num_parser.parse(s + " ")
+            print("(" + s + " " + ")")
+        else:
+            parsed = parser.parse(s)
+    except UnexpectedEOF:
+        return None
+    except UnexpectedCharacters:
+        return None
+    if not num:
+        parsed = quick_fixed_CA(parsed)  # because CA does no longer work for me (None in optionals like num_and_case)
+        # interps = CollapseAmbiguities().transform(parsed)
+        interps = [interpret(i, num=num) for i in parsed]
+        return [i for i in interps if i]
+    else:
+        return [interpret(parsed, num=num)]
 
-    def part_to_string(part):
-        if part.data == "prefix":
-            return "[italic yellow]"+child0(part) +"[/italic yellow]"
-        elif part.data == "root":
-            return "[bold red]"+"".join([letter for letter in part.children])+"[/bold red]"
-        elif part.data == "suffix":
-            return "[italic green]"+child0(part) +"[/italic green]"
-        elif part.data == "ending":
-            return "[magenta]"+ending_to_string(part)+"[/magenta]"
-        elif "connection" in part.data:
-            return "[cyan]"+part.data[0]+"[/cyan]"
-
-    word = child0(t)
-    parts = word.children
-    if "memstaro" in parts or "correlative" in parts:
-        print("memstaro or correlative")
-        return
-    split_parts = split_word(parts)
-    return "'".join(["'".join(map(part_to_string, w)) for w in split_parts])
 
 def parseAndInterpret(s, num=False, both=False):
     s = x_rule(s)
-    def pai(s, num=False):
-        try:
-            if num:
-                parsed = num_parser.parse(s+" ")
-            else:
-                parsed = parser.parse(s)
-        except UnexpectedEOF:
-            return None
-        except UnexpectedCharacters:
-            return None
-        if not num:
-            parsed = CollapseAmbiguities().transform(parsed)
-            interps = [(interpret(i, num=num), i) for i in parsed]
-            interps = [i for i in interps if i[0]]
-            interps = [(i[0], visualize(i[1])) for i in interps]
-            return [i for i in interps]
-        else:
-            return [(interpret(parsed, num=num), None)]
 
-    if both: # first num because it takes a lot less time
-        interpretations = pai(s, True)
+    if both:  # first num because it takes a lot less time
+        interpretations = all_word_interpretations(s, True)
         if not interpretations:
-            interpretations = pai(s, False)
+            interpretations = all_word_interpretations(s, False)
     else:
-        interpretations = pai(s, num)
+        interpretations = all_word_interpretations(s, num)
     if not interpretations:
         console.print("[italic bold red] No results found! [/italic bold red]")
         return
-    table = Table(title="[underline]"+s+"[/underline]", show_lines=True, title_style="white bold")
+    table = Table(title=s, show_lines=True, title_style="yellow bold")
     table.add_column("Nr.")
-    table.add_column("prefix", style="yellow")
-    table.add_column("root", style="red")
-    table.add_column("suffix", style="green")
-    table.add_column("ending", style="magenta")
-    table.add_column("visual")
+    table.add_column("prefix", style="cyan")
+    table.add_column("root", style="magenta")
+    table.add_column("suffix", style="red")
+    table.add_column("morphology", style="green")
     for n, i in enumerate(interpretations):
         table.add_row(str(n),
-                      "\n\n".join(i[0]["prefix"]),
-                      "\n\n".join(i[0]["root"]),
-                      "\n\n".join(i[0]["suffix"]),
-                      "\n\n".join(i[0]["ending"]),
-                      i[1])
+                      "\n\n".join(i["prefix"]),
+                      "\n\n".join(i["root"]),
+                      "\n\n".join(i["suffix"]),
+                      "\n\n".join(i["ending"]))
     console.print(table)
+
 
 def repl():
     s = console.input(PROMPT)
@@ -371,20 +310,24 @@ def repl():
             break
 
 
-
 # ----- command line interface class for fire ------- #
 
 class Parseo(object):
     def parse(self, s):
         parseAndInterpret(s, both=True)
+
     def parsenum(self, n):
         parseAndInterpret(n, num=True)
+
     def parseword(self, s):
         parseAndInterpret(s)
+
     def read(self, *t):
-        readText(t)
+        read_text(t)
+
     def repl(self):
         repl()
 
+
 if __name__ == '__main__':
-  fire.Fire(Parseo)
+    fire.Fire(Parseo)
