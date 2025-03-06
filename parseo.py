@@ -20,7 +20,7 @@ install(extra_lines=1)
 
 # ----- construct parser for lark -------- #
 
-PATH_PREFIX = "/home/neniu/Projects/eonlp/"
+PATH_PREFIX = "./"
 VORTARO_PATH = PATH_PREFIX + "vortaro.json"
 GRAMMAR_PATH = PATH_PREFIX + "espWord.grammar"
 
