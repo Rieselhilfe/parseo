@@ -4,9 +4,11 @@
 import json
 
 import sys
+from typing import Dict, List
 import fire
 
-from lark import Lark
+from lark import Lark, ParseTree, Token, Tree
+from lark.tree import Branch
 from lark.visitors import CollapseAmbiguities
 from lark.exceptions import UnexpectedEOF, UnexpectedCharacters
 
@@ -27,9 +29,9 @@ GRAMMAR_PATH = PATH_PREFIX + "espWord.grammar"
 PROMPT = "[bold]|[green]★ [/ green] |> [/ bold]"
 
 with open(VORTARO_PATH) as vortaroFile:
-    vortaro = json.load(vortaroFile)
+    vortaro: Dict[str, Dict[str, (Dict[str, List[str]] | List[str])]] = json.load(vortaroFile)
 
-vortaroFlat = {}
+vortaroFlat: Dict[str, List[str]] = {}
 vortaroFlat.update(vortaro["radikoj"]["a"])
 vortaroFlat.update(vortaro["radikoj"]["o"])
 vortaroFlat.update(vortaro["radikoj"]["i"])
@@ -41,7 +43,7 @@ vortaroFlat.update({(x + "-"): y for (x, y) in vortaro["prefiksoj"].items()})
 vortaroFlat.update(vortaro["other"])
 vortaroFlat.update(vortaro["correlatives"])
 
-vortaroRoots = {}
+vortaroRoots: Dict[str, List[str]] = {}
 vortaroRoots.update(vortaro["radikoj"]["a"])
 vortaroRoots.update(vortaro["radikoj"]["o"])
 vortaroRoots.update(vortaro["radikoj"]["i"])
@@ -50,9 +52,9 @@ vortaroRoots.update(vortaro["radikoj"]["aj"])
 vortaroRoots.update(vortaro["radikoj"]["oj"])
 # vortaroRoots.update(vortaro["other"])
 
-prefixes = vortaro["prefiksoj"]
-suffixes = vortaro["sufiksoj"]
-memstaro = vortaro["other"]
+prefixes: Dict[str, List[str]] = vortaro["prefiksoj"]
+suffixes: Dict[str, List[str]] = vortaro["sufiksoj"]
+memstaro: Dict[str, List[str]] = vortaro["other"]
 
 prefixRule = "!prefix: " + ("|".join(['"' + word + '"' for word, _ in prefixes.items()])) + "\n"
 suffixRule = "!suffix: " + ("|".join(['"' + word + '"' for word, _ in suffixes.items()])) + "\n"
@@ -71,9 +73,19 @@ num_parser = Lark(grammar, parser='earley', start="start_num")
 
 
 # ---- quick dumb fix for issue with lark's CollapseAmbiguities ---- #
-
-def quick_fixed_CA(tree):
-    words = [c for c in child0(tree).children]
+# may be replaced by a recursive function
+def quick_fixed_CA(tree: ParseTree | Branch[Token]):
+    firstChild = child0(tree)
+    words = []
+    if firstChild.data == "_ambig":
+        for c in firstChild.children:
+            if c.data == "_ambig":
+                for cc in c.children:
+                    words.append(cc)
+            else:
+                words.append(c)
+    else:
+        words.append(firstChild)
     return words
 
 
@@ -97,7 +109,7 @@ def x_rule(s):
         .replace("gx", "ĝ")
 
 
-def child0(a):
+def child0(a: ParseTree | Branch[Token]):
     return a.children[0]
 
 
@@ -159,7 +171,7 @@ def translate_number(tree):
     return num
 
 
-def interpret(t, num=False):
+def interpret(t: Branch[Token], num=False):
     def num_and_case(t):
         l = [x.data for x in t.children if x]
         if not "plural" in l:
@@ -183,12 +195,6 @@ def interpret(t, num=False):
 
     word = t  # word = child0(t) with CollapseAmbiguities
     roots = []
-    if word.data == "memstaro":
-        memstaro = child0(word)
-        definition = vortaroFlat[memstaro]
-        content = memstaro + ": " + "; ".join(definition)
-        interpreted["root"].append(content)
-        return interpreted
     for part in word.children:
         if part.data == "root":
             root = "".join([letter for letter in part.children])
@@ -198,6 +204,12 @@ def interpret(t, num=False):
             else:
                 return None
             content = root + ": " + "; ".join(definition)
+            interpreted["root"].append(content)
+        elif part.data == "memstaro":
+            memstaro = child0(part)
+            roots.append(memstaro)
+            definition = vortaroFlat[memstaro]
+            content = memstaro + ": " + "; ".join(definition)
             interpreted["root"].append(content)
         elif part.data == "ending":
             if len(part.children) > 1:
@@ -246,13 +258,10 @@ def interpret(t, num=False):
         else:
             if part.data != "connection":
                 console.print("invalid: ", part.data)
-    if not (roots and roots[-1] in vortaro["other"] and interpreted["ending"]):
-        return interpreted
-    else:
-        return None
+    return interpreted
 
 
-def all_word_interpretations(s, num=False):
+def all_word_interpretations(s: str, num=False):
     try:
         if num:
             parsed = num_parser.parse(s + " ")
@@ -265,14 +274,14 @@ def all_word_interpretations(s, num=False):
         return None
     if not num:
         parsed = quick_fixed_CA(parsed)  # because CA does no longer work for me (None in optionals like num_and_case)
-        # interps = CollapseAmbiguities().transform(parsed)
+        # parsed = CollapseAmbiguities().transform(parsed)
         interps = [interpret(i, num=num) for i in parsed]
         return [i for i in interps if i]
     else:
         return [interpret(parsed, num=num)]
 
 
-def parseAndInterpret(s, num=False, both=False):
+def parseAndInterpret(s: str, num=False, both=False):
     s = x_rule(s)
 
     if both:  # first num because it takes a lot less time
