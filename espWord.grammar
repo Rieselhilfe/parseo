@@ -1,8 +1,6 @@
 start_word: (word WHITESPACE+)* word
 
-!word: (((root | prefix | suffix) connective)? (root | prefix | suffix))+  ending
-	 | memstaro
-	 | correlative
+!word: (((root | prefix | suffix | memstaro | correlative) connective?)* (root ending | prefix ending | suffix ending | memstaro ending? | correlative ending?))
 
 !ending: verb
 	   | noun num_and_case
