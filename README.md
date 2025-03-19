@@ -20,7 +20,7 @@ Parseo also can parse and translate numbers and understands the x-system, so thi
 
     python parseo.py parse "kvin milionoj kvarcent tridek kvin mil sescent okdek naux"
 
-Commands:
+Example Commands:
 
 - parse: outputs possible interpretations of a single word as a table (as seen above)
 - parse_to_json: outputs possible interpretations of a single word as json
