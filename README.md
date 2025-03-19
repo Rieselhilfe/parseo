@@ -12,19 +12,19 @@ For Example:
   
     python parseo.py parse memorindajn
 
-outputs (as a rich library table):
+outputs:
 
-| Nr. | Prefix | Root | Suffix | Morphology |
-| --- | ------ | ---- | ------ | ---------- |
-| 0 | mem : self | or: gold |  ind: (denotes worthiness, merit) | adjective, accusative, plural |
-| 1 | | memor: to recall; recollect; remember | ind: (denotes worthiness, merit) | adjective, accusative, plural |
+![Screenshot of table output](Screenshot2.png)
 
-Parseo also can parse and translate numbers and understands the x-system, so:
+Parseo also can parse and translate numbers and understands the x-system, so this works too:
 
     python parseo.py parse "kvin milionoj kvarcent tridek kvin mil sescent okdek naux"
 
-outputs:
+Commands:
 
-| Nr. | Prefix | Root | Suffix | Morphology |
-| --- | ------ | ---- | ------ | ---------- |
-| 0 | | number: 5435689 | | |
+- parse: outputs possible interpretations of a single word as a table (as seen above)
+- parse_to_json: outputs possible interpretations of a single word as json
+- parse_all_min: outputs a whole text with simple color coding of affixes and morpheme borders (see below)
+
+![Screenshot of color coded text](Screenshot1.png)
+

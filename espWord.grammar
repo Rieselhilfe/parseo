@@ -1,6 +1,7 @@
 start_word: (word WHITESPACE+)* word
 
 !word: (((root | prefix | suffix | memstaro | correlative) connective?)* (root ending | prefix ending | suffix ending | memstaro ending? | correlative ending?))
+	 | pronoun
 
 !ending: verb
 	   | noun num_and_case
@@ -29,9 +30,10 @@ _SUBJUNCTIVE: "us"
 _IMPERATIVE: "u"
 _INFINITIVE: "i"
 
-connective: "o" -> connection
-	      | "a" -> connection
-          | "e" -> connection
+connective: "o" -> connection_o
+	      | "a" -> connection_a
+          | "e" -> connection_e
+          | "-" -> connection_dash
 
 !root: LETTER LETTER+
 LETTER: "a" | "b" | "c" | "ĉ" | "d" | "e" | "f"
@@ -62,6 +64,17 @@ suff_corr_decl: "u" -> u_individual
 suff_corr_decl_no_num: "o" -> o_thing
 suff_corr_decl_dir_acc: "e" -> e_place
 
+pronoun: pronoun_root accusative?
+       | pronoun_root adjective num_and_case
+
+pronoun_root: "mi"  -> pronoun_1_sg
+            | "vi"  -> pronoun_2_sg_pl
+            | "li"  -> pronoun_m_3_sg
+            | "ŝi"  -> pronoun_f_3_sg
+            | "ĝi"  -> pronoun_n_3_sg
+            | "ni"  -> pronoun_1_pl
+            | "ili" -> pronoun_3_pl
+            | "si"  -> pronoun_reflexive
 
 start_num: number
 _delimitor: " "
