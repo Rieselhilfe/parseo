@@ -10,7 +10,7 @@ Usage from command line:
     
 For Example:
   
-    python parseo.py parse memorindajn
+    python parseo.py parse pruntedonanta
 
 outputs:
 
